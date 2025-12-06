@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">📝</span>
+            <h2>Smart Summarizer</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('user.dashboard') }}" class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('user.summarize') }}" class="nav-item">
+                <span class="nav-icon">✨</span>
+                <span>Summarize</span>
+            </a>
+            <a href="{{ url_for('user.history') }}" class="nav-item">
+                <span class="nav-icon">📋</span>
+                <span>History</span>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('user.notifications') }}" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                <span>Notifications</span>
+                {% if unread_notifications > 0 %}
+                <span class="badge">{{ unread_notifications }}</span>
+                {% endif %}
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Welcome back, {{ current_user.name }}!</h1>
+            <p class="text-muted">Here's an overview of your activity</p>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <h3>{{ summary_count }}</h3>
+                    <p>Total Summaries</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <h3>{{ format_date(current_user.created_at) }}</h3>
+                    <p>Member Since</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-info">
+                    <h3>{{ format_datetime(current_user.last_login) }}</h3>
+                    <p>Last Login</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action -->
+        <div class="quick-action-card">
+            <div class="quick-action-content">
+                <h2>Ready to summarize?</h2>
+                <p>Paste your text or upload a document to get started</p>
+            </div>
+            <a href="{{ url_for('user.summarize') }}" class="btn btn-primary btn-lg">
+                Start Summarizing ✨
+            </a>
+        </div>
+
+        <!-- Recent Summaries -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Recent Summaries</h2>
+                <a href="{{ url_for('user.history') }}" class="link">View All →</a>
+            </div>
+
+            {% if recent_summaries %}
+            <div class="summary-list">
+                {% for summary in recent_summaries %}
+                <div class="summary-item">
+                    <div class="summary-meta">
+                        <span class="badge badge-{{ summary.summary_length }}">{{ summary.summary_length|title }}</span>
+                        <span class="date">{{ format_datetime(summary.created_at) }}</span>
+                    </div>
+                    <p class="summary-preview">{{ summary.get_preview(150) }}</p>
+                    <div class="summary-actions">
+                        <a href="{{ url_for('user.view_summary', id=summary.id) }}" class="btn btn-sm">View</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No summaries yet. Create your first one!</p>
+                <a href="{{ url_for('user.summarize') }}" class="btn btn-primary">Create Summary</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

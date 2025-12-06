@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}auth-page admin-auth{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card admin-card">
+        <div class="auth-header">
+            <div class="logo">
+                <span class="logo-icon">🔐</span>
+                <h1>Admin Portal</h1>
+            </div>
+            <p class="auth-subtitle">Administrator access only</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.admin_login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" name="email" required placeholder="Enter admin email"
+                    autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter admin password"
+                    autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-admin btn-block">
+                Admin Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p><a href="{{ url_for('auth.login') }}">← Back to User Login</a></p>
+        </div>
+    </div>
+
+    <div class="auth-decoration admin-decoration">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+    </div>
+</div>
+{% endblock %}

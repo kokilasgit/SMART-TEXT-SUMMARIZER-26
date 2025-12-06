@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page admin-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar admin-sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">🔐</span>
+            <h2>Admin Panel</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="nav-item active">
+                <span class="nav-icon">👥</span>
+                <span>Users</span>
+            </a>
+            <a href="{{ url_for('admin.settings') }}" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('admin.reports') }}" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span>Reports</span>
+            </a>
+            <a href="{{ url_for('admin.notifications') }}" class="nav-item">
+                <span class="nav-icon">📢</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>User Management</h1>
+            <p class="text-muted">View and manage user accounts</p>
+        </header>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <form method="GET" action="{{ url_for('admin.users') }}" class="filter-form">
+                <input type="text" name="search" value="{{ search }}" placeholder="Search by email or name..."
+                    class="filter-input">
+                <select name="status" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status=='active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status=='inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Reset</a>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        {% if users %}
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Summaries</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar-small">{{ user.name[0]|upper }}</div>
+                                <span>{{ user.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.get_summary_count() }}</td>
+                        <td>{{ format_date(user.created_at) }}</td>
+                        <td>{{ format_datetime(user.last_login) }}</td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge badge-success">Active</span>
+                            {% else %}
+                            <span class="badge badge-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('admin.user_detail', id=user.id) }}" class="btn btn-sm">View</a>
+                            <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}"
+                                style="display:inline">
+                                {% if user.is_active %}
+                                <button type="submit" class="btn btn-sm btn-warning"
+                                    onclick="return confirm('Deactivate this user?')">Deactivate</button>
+                                {% else %}
+                                <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.users', page=pagination.prev_num, search=search, status=status) }}"
+                class="page-link">← Previous</a>
+            {% endif %}
+
+            <span class="page-info">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.users', page=pagination.next_num, search=search, status=status) }}"
+                class="page-link">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>No users found</h3>
+            <p>Try adjusting your search filters</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Summarize - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">📝</span>
+            <h2>Smart Summarizer</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('user.dashboard') }}" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('user.summarize') }}" class="nav-item active">
+                <span class="nav-icon">✨</span>
+                <span>Summarize</span>
+            </a>
+            <a href="{{ url_for('user.history') }}" class="nav-item">
+                <span class="nav-icon">📋</span>
+                <span>History</span>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('user.notifications') }}" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Text Summarizer</h1>
+            <p class="text-muted">Paste text or upload a document to generate a summary</p>
+        </header>
+
+        <div class="summarizer-container">
+            <!-- Input Section -->
+            <form method="POST" action="{{ url_for('user.summarize') }}" class="summarizer-form" id="summarize-form">
+                <div class="input-section">
+                    <div class="input-header">
+                        <h3>Input Text</h3>
+                        <div class="input-actions">
+                            <label class="upload-btn">
+                                <input type="file" id="file-upload" accept=".txt,.pdf,.docx" hidden>
+                                <span class="btn btn-secondary btn-sm">📁 Upload File</span>
+                            </label>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearInput()">Clear</button>
+                        </div>
+                    </div>
+
+                    <textarea name="text" id="input-text" rows="12"
+                        placeholder="Paste your text here... (minimum 30 words)"
+                        required>{{ input_text or '' }}</textarea>
+
+                    <div class="input-footer">
+                        <span class="word-count" id="word-count">0 words</span>
+                        <span class="max-words">Max: {{ settings.max_input_words }} words</span>
+                    </div>
+                </div>
+
+                <!-- Summary Length Options -->
+                <div class="options-section">
+                    <div class="option-group">
+                        <label>Summary Length</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="length" value="short" onchange="updateSlider(this)">
+                                <span class="radio-label">
+                                    <strong>Short</strong>
+                                    <small>~{{ settings.short_percentage }}%</small>
+                                </span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="length" value="medium" onchange="updateSlider(this)">
+                                <span class="radio-label">
+                                    <strong>Medium</strong>
+                                    <small>~{{ settings.medium_percentage }}%</small>
+                                </span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="length" value="long" onchange="updateSlider(this)">
+                                <span class="radio-label">
+                                    <strong>Long</strong>
+                                    <small>~{{ settings.long_percentage }}%</small>
+                                </span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="length" value="custom" checked onchange="updateSlider(this)">
+                                <span class="radio-label">
+                                    <strong>Custom</strong>
+                                    <small>Use slider</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Compression Slider -->
+                <div class="slider-section">
+                    <div class="slider-header">
+                        <label>Compression Level</label>
+                        <span class="slider-value" id="slider-value">{{ custom_percentage }}%</span>
+                    </div>
+                    <div class="slider-container">
+                        <span class="slider-label">More Compression</span>
+                        <input type="range" name="custom_percentage" id="compression-slider" min="10" max="80"
+                            value="{{ custom_percentage }}" class="compression-slider" oninput="onSliderChange(this)">
+                        <span class="slider-label">Less Compression</span>
+                    </div>
+                    <div class="slider-info">
+                        <span>10% (Very Short)</span>
+                        <span>80% (Detailed)</span>
+                    </div>
+
+                    <!-- Hidden Settings Data for JS -->
+                    <div id="settings-data" hidden data-short="{{ settings.short_percentage }}"
+                        data-medium="{{ settings.medium_percentage }}" data-long="{{ settings.long_percentage }}">
+                    </div>
+                </div>
+
+                <!-- AI Model Selection -->
+                <div class="options-section">
+                    <div class="option-group">
+                        <label>AI Model</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="engine" value="nltk" checked>
+                                <span class="radio-label">
+                                    <strong>Standard (NLTK)</strong>
+                                    <small>Fast, Extractive (Offline)</small>
+                                </span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="engine" value="transformers">
+                                <span class="radio-label">
+                                    <strong>Advanced (Transformers)</strong>
+                                    <small>Smart, Abstractive (Requires DL)</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summarization Mode -->
+                <div class="options-section mode-section">
+                    <div class="option-group">
+                        <label>Summarization Mode</label>
+                        <select name="mode" class="form-select">
+                            <option value="extractive" {% if settings.summarization_mode !='abstractive' %}selected{%
+                                endif %}>
+                                Extractive (Key sentences)
+                            </option>
+                            <option value="abstractive" {% if settings.summarization_mode=='abstractive' %}selected{%
+                                endif %}>
+                                Abstractive (Compressed)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="summarize-btn">
+                    <span class="btn-text">✨ Generate Summary</span>
+                    <span class="btn-loading" style="display:none;">Summarizing...</span>
+                </button>
+            </form>
+
+            <!-- Result Section -->
+            {% if summary_result %}
+            <div class="result-section">
+                <div class="result-header">
+                    <h3>Summary Result</h3>
+                    <div class="result-badges">
+                        <span class="badge badge-info">{{ summary_result.target_percentage }}% of original</span>
+                        <span class="badge badge-secondary">{{ summary_result.summary_type|title }}</span>
+                    </div>
+                </div>
+
+                <div class="result-stats">
+                    <div class="stat">
+                        <span class="stat-value">{{ summary_result.input_word_count }}</span>
+                        <span class="stat-label">Input Words</span>
+                    </div>
+                    <div class="stat-arrow">→</div>
+                    <div class="stat">
+                        <span class="stat-value">{{ summary_result.summary_word_count }}</span>
+                        <span class="stat-label">Summary Words</span>
+                    </div>
+                    <div class="stat highlight">
+                        <span class="stat-value">{{ summary_result.compression_ratio }}%</span>
+                        <span class="stat-label">Compressed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ summary_result.actual_percentage }}%</span>
+                        <span class="stat-label">Actual Length</span>
+                    </div>
+                </div>
+
+                <div class="result-content">
+                    <p id="summary-text">{{ summary_result.summary }}</p>
+                </div>
+
+                <div class="result-actions">
+                    <button type="button" class="btn btn-secondary" onclick="copySummary()">
+                        📋 Copy Summary
+                    </button>
+                    <a href="{{ url_for('user.download_summary', id=summary_result.id) }}" class="btn btn-secondary">
+                        ⬇️ Download TXT
+                    </a>
+                    <a href="{{ url_for('user.view_summary', id=summary_result.id) }}" class="btn btn-primary">
+                        View Full Details
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+{% block extra_js %}
+<script>
+    // Word count
+    const textarea = document.getElementById('input-text');
+    const wordCountEl = document.getElementById('word-count');
+    const slider = document.getElementById('compression-slider');
+    const sliderValue = document.getElementById('slider-value');
+
+    function updateWordCount() {
+        const text = textarea.value.trim();
+        const count = text ? text.split(/\s+/).length : 0;
+        wordCountEl.textContent = count + ' words';
+    }
+
+    textarea.addEventListener('input', updateWordCount);
+    updateWordCount();
+
+    // Clear input
+    function clearInput() {
+        textarea.value = '';
+        updateWordCount();
+    }
+
+    // Slider change
+    function onSliderChange(el) {
+        sliderValue.textContent = el.value + '%';
+        // Auto-select custom when slider is adjusted
+        document.querySelector('input[name="length"][value="custom"]').checked = true;
+    }
+
+    // Update slider when preset is selected
+    function updateSlider(radio) {
+        const data = document.getElementById('settings-data').dataset;
+        const presets = {
+            'short': parseInt(data.short),
+            'medium': parseInt(data.medium),
+            'long': parseInt(data.long),
+            'custom': parseInt(slider.value)
+        };
+        if (radio.value !== 'custom') {
+            slider.value = presets[radio.value];
+            sliderValue.textContent = presets[radio.value] + '%';
+        }
+    }
+
+    // File upload
+    document.getElementById('file-upload').addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('{{ url_for("user.upload_file") }}', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                textarea.value = data.text;
+                updateWordCount();
+            }
+        } catch (err) {
+            alert('Error uploading file: ' + err.message);
+        }
+
+        e.target.value = '';
+    });
+
+    // Copy summary
+    function copySummary() {
+        const text = document.getElementById('summary-text').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Summary copied to clipboard!');
+        });
+    }
+
+    // Form submission
+    document.getElementById('summarize-form').addEventListener('submit', function () {
+        const btn = document.getElementById('summarize-btn');
+        btn.querySelector('.btn-text').style.display = 'none';
+        btn.querySelector('.btn-loading').style.display = 'inline';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">📝</span>
+            <h2>Smart Summarizer</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('user.dashboard') }}" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('user.summarize') }}" class="nav-item">
+                <span class="nav-icon">✨</span>
+                <span>Summarize</span>
+            </a>
+            <a href="{{ url_for('user.history') }}" class="nav-item">
+                <span class="nav-icon">📋</span>
+                <span>History</span>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('user.notifications') }}" class="nav-item active">
+                <span class="nav-icon">🔔</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Notifications</h1>
+            <p class="text-muted">System announcements and messages</p>
+        </header>
+
+        {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-icon">
+                    {% if notification.user_id is none %}🌐{% else %}📬{% endif %}
+                </div>
+                <div class="notification-content">
+                    <h4>{{ notification.title }}</h4>
+                    <p>{{ notification.message }}</p>
+                    <span class="notification-date">{{ format_datetime(notification.created_at) }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('user.notifications', page=pagination.prev_num) }}" class="page-link">← Previous</a>
+            {% endif %}
+
+            <span class="page-info">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('user.notifications', page=pagination.next_num) }}" class="page-link">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <h3>No notifications</h3>
+            <p>You're all caught up!</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

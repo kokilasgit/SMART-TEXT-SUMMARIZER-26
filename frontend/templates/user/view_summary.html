@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}View Summary - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">📝</span>
+            <h2>Smart Summarizer</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('user.dashboard') }}" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('user.summarize') }}" class="nav-item">
+                <span class="nav-icon">✨</span>
+                <span>Summarize</span>
+            </a>
+            <a href="{{ url_for('user.history') }}" class="nav-item active">
+                <span class="nav-icon">📋</span>
+                <span>History</span>
+            </a>
+            <a href="{{ url_for('user.profile') }}" class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('user.notifications') }}" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <a href="{{ url_for('user.history') }}" class="back-link">← Back to History</a>
+            <h1>Summary Details</h1>
+        </header>
+
+        <div class="summary-detail">
+            <!-- Meta Info -->
+            <div class="detail-meta">
+                <div class="meta-badges">
+                    <span class="badge badge-{{ summary.summary_length }}">{{ summary.summary_length|title }}</span>
+                    <span class="badge badge-info">{{ summary.summary_type|title }}</span>
+                </div>
+                <div class="meta-info">
+                    <span>Created: {{ format_datetime(summary.created_at) }}</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="detail-stats">
+                <div class="stat-box">
+                    <span class="stat-value">{{ summary.input_word_count }}</span>
+                    <span class="stat-label">Input Words</span>
+                </div>
+                <div class="stat-arrow">→</div>
+                <div class="stat-box">
+                    <span class="stat-value">{{ summary.summary_word_count }}</span>
+                    <span class="stat-label">Summary Words</span>
+                </div>
+                <div class="stat-box highlight">
+                    <span class="stat-value">{{ ((1 - summary.summary_word_count / summary.input_word_count) *
+                        100)|round(1) }}%</span>
+                    <span class="stat-label">Compressed</span>
+                </div>
+            </div>
+
+            <!-- Original Text -->
+            <div class="detail-section">
+                <h3>Original Text</h3>
+                <div class="text-box">
+                    <p>{{ summary.input_text }}</p>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="detail-section">
+                <h3>Summary</h3>
+                <div class="text-box summary-box" id="summary-text">
+                    <p>{{ summary.summary_text }}</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="detail-actions">
+                <button type="button" class="btn btn-secondary" onclick="copySummary()">
+                    📋 Copy Summary
+                </button>
+                <a href="{{ url_for('user.download_summary', id=summary.id) }}" class="btn btn-secondary">
+                    ⬇️ Download TXT
+                </a>
+                <form method="POST" action="{{ url_for('user.delete_summary', id=summary.id) }}" style="display:inline"
+                    onsubmit="return confirm('Delete this summary?')">
+                    <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function copySummary() {
+        const text = document.getElementById('summary-text').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Summary copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}

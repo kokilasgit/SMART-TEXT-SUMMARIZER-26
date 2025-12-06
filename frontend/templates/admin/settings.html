@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page admin-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar admin-sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">🔐</span>
+            <h2>Admin Panel</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span>Users</span>
+            </a>
+            <a href="{{ url_for('admin.settings') }}" class="nav-item active">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('admin.reports') }}" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span>Reports</span>
+            </a>
+            <a href="{{ url_for('admin.notifications') }}" class="nav-item">
+                <span class="nav-icon">📢</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <h1>System Settings</h1>
+            <p class="text-muted">Configure summarization parameters</p>
+        </header>
+
+        <div class="settings-container">
+            <form method="POST" action="{{ url_for('admin.settings') }}" class="settings-form">
+                <!-- Summary Length Settings -->
+                <div class="settings-card">
+                    <h3>📏 Summary Length Settings</h3>
+                    <p class="text-muted">Configure the percentage of original text for each summary length</p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="short_percentage">Short Summary (%)</label>
+                            <input type="number" id="short_percentage" name="short_percentage"
+                                value="{{ settings.short_percentage }}" min="5" max="50" required>
+                            <small class="form-hint">Recommended: 15-25%</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="medium_percentage">Medium Summary (%)</label>
+                            <input type="number" id="medium_percentage" name="medium_percentage"
+                                value="{{ settings.medium_percentage }}" min="20" max="70" required>
+                            <small class="form-hint">Recommended: 35-45%</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="long_percentage">Long Summary (%)</label>
+                            <input type="number" id="long_percentage" name="long_percentage"
+                                value="{{ settings.long_percentage }}" min="40" max="90" required>
+                            <small class="form-hint">Recommended: 55-65%</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Settings -->
+                <div class="settings-card">
+                    <h3>📝 Input Settings</h3>
+                    <p class="text-muted">Configure input text limits</p>
+
+                    <div class="form-group">
+                        <label for="max_input_words">Maximum Input Words</label>
+                        <input type="number" id="max_input_words" name="max_input_words"
+                            value="{{ settings.max_input_words }}" min="100" max="100000" required>
+                        <small class="form-hint">Maximum number of words users can input (default: 10000)</small>
+                    </div>
+                </div>
+
+                <!-- Summarization Mode -->
+                <div class="settings-card">
+                    <h3>🧠 Summarization Mode</h3>
+                    <p class="text-muted">Select the default summarization algorithm</p>
+
+                    <div class="form-group">
+                        <label for="summarization_mode">Default Mode</label>
+                        <select id="summarization_mode" name="summarization_mode" class="form-select">
+                            <option value="extractive" {% if settings.summarization_mode=='extractive' %}selected{%
+                                endif %}>
+                                Extractive - Selects key sentences from original text
+                            </option>
+                            <option value="abstractive" {% if settings.summarization_mode=='abstractive' %}selected{%
+                                endif %}>
+                                Abstractive - Compresses and paraphrases content
+                            </option>
+                            <option value="both" {% if settings.summarization_mode=='both' %}selected{% endif %}>
+                                Both - Allow users to choose
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">
+                    💾 Save Settings
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

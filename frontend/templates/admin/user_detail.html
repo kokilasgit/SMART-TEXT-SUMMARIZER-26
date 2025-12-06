@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - Smart Text Summarizer{% endblock %}
+
+{% block body_class %}app-page admin-page{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar admin-sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">🔐</span>
+            <h2>Admin Panel</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="nav-item active">
+                <span class="nav-icon">👥</span>
+                <span>Users</span>
+            </a>
+            <a href="{{ url_for('admin.settings') }}" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('admin.reports') }}" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span>Reports</span>
+            </a>
+            <a href="{{ url_for('admin.notifications') }}" class="nav-item">
+                <span class="nav-icon">📢</span>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <a href="{{ url_for('admin.users') }}" class="back-link">← Back to Users</a>
+            <h1>User Details</h1>
+        </header>
+
+        <!-- User Info Card -->
+        <div class="profile-card admin-user-card">
+            <div class="profile-header">
+                <div class="avatar">{{ user.name[0]|upper }}</div>
+                <div class="profile-info">
+                    <h2>{{ user.name }}</h2>
+                    <p>{{ user.email }}</p>
+                    {% if user.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <span class="stat-value">{{ user.get_summary_count() }}</span>
+                    <span class="stat-label">Summaries</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-value">{{ format_date(user.created_at) }}</span>
+                    <span class="stat-label">Joined</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-value">{{ format_datetime(user.last_login) }}</span>
+                    <span class="stat-label">Last Login</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}" style="display:inline">
+                    {% if user.is_active %}
+                    <button type="submit" class="btn btn-warning"
+                        onclick="return confirm('Deactivate this user?')">Deactivate User</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-success">Activate User</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- User's Summaries -->
+        <div class="section">
+            <h2>User's Summary History</h2>
+
+            {% if summaries %}
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Length</th>
+                            <th>Type</th>
+                            <th>Input Words</th>
+                            <th>Summary Words</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for summary in summaries %}
+                        <tr>
+                            <td>{{ format_datetime(summary.created_at) }}</td>
+                            <td><span class="badge badge-{{ summary.summary_length }}">{{ summary.summary_length|title
+                                    }}</span></td>
+                            <td>{{ summary.summary_type|title }}</td>
+                            <td>{{ summary.input_word_count }}</td>
+                            <td>{{ summary.summary_word_count }}</td>
+                            <td class="preview-cell">{{ summary.get_preview(100) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.user_detail', id=user.id, page=pagination.prev_num) }}" class="page-link">←
+                    Previous</a>
+                {% endif %}
+
+                <span class="page-info">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+                {% if pagination.has_next %}
+                <a href="{{ url_for('admin.user_detail', id=user.id, page=pagination.next_num) }}"
+                    class="page-link">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <p class="text-muted">No summaries found for this user.</p>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}
