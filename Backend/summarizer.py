@@ -26,7 +26,7 @@ ensure_nltk_data()
 class TextSummarizer:
     """Text summarization engine with extractive and abstractive modes"""
     
-    def __init__(self):
+    def _init_(self):
         self.stop_words = set(stopwords.words('english'))
     
     def preprocess_text(self, text):
@@ -218,7 +218,7 @@ class TextSummarizer:
             import os
             
             # Path to local model (downloaded via download_models.py)
-            model_path = os.path.join(os.path.dirname(__file__), 'models', 'transformers_model')
+            model_path = os.path.join(os.path.dirname(_file_), 'models', 'transformers_model')
             
             if not os.path.exists(model_path) or not os.listdir(model_path):
                 print(f"[WARNING] Transformer model not found at {model_path}. Fallback to NLTK.")

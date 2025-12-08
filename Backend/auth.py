@@ -7,7 +7,7 @@ from datetime import datetime
 from models import db, User, PasswordResetToken
 from utils import generate_reset_token, get_reset_token_expiry
 
-auth = Blueprint('auth', __name__)
+auth = Blueprint('auth', _name_)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
